@@ -1,0 +1,30 @@
+1 2 3 4 5 6 7 8
+    missing: none
+1 2 3 5 4 6 7 8
+    missing: add 4 to set. count that 5 is larger than 4, add 1 to total. when we get to 4, remove it from the set.
+1 2 5 3 4 6 7 8
+    missing: add 3 and 4 to set, count+=2. when we see 3, remove from set, and don't increment because it was the smaller one. when we see 4, remove from set, and don't increment because it was the smaller one.
+1 2 5 4 3 6 7 8
+    missing: add 3 and 4, count+=2, because 5 is larger than both. see 4, remove from set, and count+=1 because 4 > 3. see 3, remove from set.
+1 2 5 4 6 3 7 8
+    missing: add 3 and 4, count+=2. see 4, count+=1, remove it. see 6, count+=1, because 6 > 3. see 3, remove it.
+
+displacement:
+0 0 -2 0 -1 +3 0 0 how do I get 4 swaps from that?
+
+n^2 easy algorithm by for each number, count the number of numbers less than it that are to the right in the list.
+just go 2 positions to the right and if you're 
+
+when we find a number out of place, we push the number we expected onto a min heap. or a max heap? tree set? anyways, as we go through the list, we have to be able to count how many numbers further to the right there are that are less than x. when we encounter the number, we can pop it off the heap.
+
+what about, for every time the number is less than the previous, add (prev - cur) to a running sum. no, that misses a step above where 4 passes 3.
+
+when we look at a number, we should be able to tell immediately how many numbers to the right there are that are lower. in the case of 5 above, it's 2: 4 and 3, because 5 was two numbers larger than the spot it's in now. we can add all numbers (inclusive lower, exclusive upper) between the expected number and the encounted number, and add that to bribes. 
+
+bribed numbers should be a min heap. if at any point its size exceeds two, it's too chaotic (?)
+
+^ the above wouldn't work. What if at the first step 3 bribed 2, then we can't add 3 to 5.
+
+how about just maintain an ordered list of missing numbers. every time we come across a number (any number), we have to find a way to count the numbers in the missing numbers set that are lower than it. if it's in the missing numbers set, remove it.
+
+but there should only ever be two numbers at any point in the list that are in the current missing set. we shouldn't need a heap. if it ever exceeds 2, it's too chaotic.
