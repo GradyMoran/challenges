@@ -16,39 +16,43 @@ public class Solution {
         //if they are present then add the product of their frequencies (to represent different combinatinos) to the retval
 
         //update: ok, need to do it differently to enforce that the triplet is in order. Will walk it once and do the input_freqs as planned, but refer to this freq count as input_freqs_right, and the main walk will be looking for the middle number in the triple. We will remove entries from input_freqs_right and add to input_freqs_left as we iterate through the input a second time. 
-        HashMap<Long,Long> input_freqs = new HashMap<Long,Long>();
-        long max = 0;
+        HashMap<Long,Long> input_freqs_right = new HashMap<Long,Long>();
         for (int i = 0; i < arr.size(); i++){
             long cur_num = arr.get(i);
-            if (input_freqs.containsKey(cur_num)){
-                input_freqs.put(cur_num, input_freqs.get(cur_num)+1);
+            if (input_freqs_right.containsKey(cur_num)){
+                input_freqs_right.put(cur_num, input_freqs_right.get(cur_num)+1);
             } else {
-                input_freqs.put(cur_num, ((long) 1));
+                input_freqs_right.put(cur_num, ((long) 1));
             }
-            if (cur_num > max) max = cur_num;
         }
 
         long retval = 0;
         //uh, special case if r = 1, then need to avoid picking itself 3 times.
         //so instead of multiplying the different counts of the number, will do n choose 3 for
         //each number that appears in the input.
-        if (r == 1){
-            for (long cur_num : input_freqs.keySet()){
-                retval += nChooseK(input_freqs.get(cur_num), 3).longValue();
+//        if (r == 1){
+//            for (long cur_num : input_freqs.keySet()){
+//                retval += nChooseK(input_freqs.get(cur_num), 3).longValue();
+//            }
+//            return retval;
+//        }
+        HashMap<Long,Long> input_freqs_left = new HashMap<Long,Long>();
+        for (int i = 0; i < arr.size(); i++){
+            //decrease count for this element in input_freqs_right by one
+            long cur_num = arr.get(i);
+            input_freqs_right.put(cur_num, input_freqs_right.get(cur_num)-1L);
+            if (cur_num % r == 0) {
+                if (input_freqs_left.containsKey(cur_num/r) && input_freqs_right.containsKey(cur_num*r)){
+                    retval += (input_freqs_left.get(cur_num/r) * input_freqs_right.get(cur_num*r));
+                }
             }
-            return retval;
-        }
-        //avoid double counting by only looking for powers higher than the current num
-        //bug: numbers in triplet have to appear in the input in that order. 
-        for (long cur_num : input_freqs.keySet()){
-            long pow_1 = cur_num*((long) Math.pow(r,1));
-            long pow_2 = cur_num*((long) Math.pow(r,2));
-            if (input_freqs.containsKey(pow_1) && input_freqs.containsKey(pow_2)){
-                retval += (input_freqs.get(cur_num) * input_freqs.get(pow_1) * input_freqs.get(pow_2));
+            if (input_freqs_left.containsKey(cur_num)) {
+                input_freqs_left.put(cur_num, input_freqs_left.get(cur_num)+1L);
+            } else {
+                input_freqs_left.put(cur_num, 1L);
             }
         }
         return retval;
-
     }
 
     public static BigInteger nChooseK(long n, long k){
