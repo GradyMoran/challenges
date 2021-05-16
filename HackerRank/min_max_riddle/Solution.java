@@ -8,62 +8,79 @@ import java.util.regex.*;
 
 public class Solution {
 
-    // Complete the riddle function below.
+    /*
+    This has a bug somewhere.
+    */
     static long[] riddle(long[] arr) {
-        /* Algorithm is to create n priority queues, initially with each having one element.
-           Add them all to a list, and among all the min elements in the priority queues, find the maximum, and put it in retval.
-           For the next iteration, add one number to the right of each of the priority queues, and drop the rightmost one from the list. Then do the same min max finding, and add to retval again
-           Terminate after there's only one queue left.
-        */
-        //Initialization 
-/*        long[] retval = new long[arr.length];
-        List<PriorityQueue<Long>> pqs = new ArrayList<PriorityQueue<Long>>();
-        for (int i = 0; i < arr.length; i++){
-            PriorityQueue<Long> tmp = new PriorityQueue<Long>();
-            tmp.add(arr[i]);
-            pqs.add(tmp);
-        }
-
-        //Main algorithm loop
-        long tmp;
-        long maxOfMins;
-        for (int i = 0; i < arr.length && pqs.size() > 0; i++){
-            maxOfMins = pqs.get(0).peek();
-            for (int j = 0; j < pqs.size(); j++){
-                tmp = pqs.get(j).peek();
-                maxOfMins = tmp > maxOfMins ? tmp : maxOfMins;
-            }
-            retval[i] = maxOfMins;
-            //recombine the priority queues to make the next largest window sizes and drop the last value
-            for (int pqIndex = 0; pqIndex < pqs.size()-1; pqIndex++){
-                pqs.get(pqIndex).add(arr[pqIndex+i+1]);
-            }
-            pqs.remove(pqs.size()-1);
-        }
-        return retval;*/
-        /*
-        Iterate through the array left to right. As long as value is increasing, add indices to a stack. Create an array leftToRight, which is to keep track of when each index value finally wasn't the minimum. After iterating through once leftToRight should contain indices that tell from each index the closest index to the right which is smaller than the current. So when you hit a decrease from the previous value, pop indices off the stack until you hit one that's smaller than the current, and for each of those indices in leftToRight put the current index.
-        Maybe make another pass of leftToRight and fill with final index if initial value is still remaining or something.
-        Do the same from rightToLeft.
-        Then iterate through both lists at the same time, adding the sizes of the windows to the left side and to the right side of each number, and put in a map like number->window size.
-        Flip the map so it goes from window size -> number, and if two numbers have the same window size, should take larger one
-        */
         Stack<Integer> s = new Stack<Integer>();
         int[] smallestIndexUntilToRight = new int[arr.length];
         int[] smallestIndexUntilToLeft = new int[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+        	smallestIndexUntilToRight[i] = arr.length;
+        	smallestIndexUntilToLeft[i] = 0;
+        }
         for (int i = 0; i < arr.length; i++){
             if (s.empty()){
                 s.push(i);
             } else if (arr[s.peek()] <= arr[i]){
                 s.push(i);
             } else {
-                while (arr[s.peek()] > arr[i]){
+                while (!s.empty() && arr[s.peek()] > arr[i]){
                     smallestIndexUntilToRight[s.pop()] = i;
                 }
                 s.push(i);
             }
         }
-        return new long[]{};
+        s.clear();
+        for (int i = arr.length-1; i >= 0; i--) {
+        	if (s.empty()) {
+        		s.push(i);
+        	} else if (arr[s.peek()] <= arr[i]){
+                s.push(i);
+            } else {
+                while (!s.empty() && arr[s.peek()] > arr[i]){
+                    smallestIndexUntilToLeft[s.pop()] = i+1;
+                }
+                s.push(i);
+            }
+        }
+        HashMap<Long, Integer> numberToWindowSize = new HashMap<Long, Integer>();
+        for (int i = 0; i < arr.length; i++) {
+        	if (!numberToWindowSize.containsKey(arr[i])) {
+        		numberToWindowSize.put(arr[i],  smallestIndexUntilToRight[i] - smallestIndexUntilToLeft[i]);
+        	} else {
+        		if (smallestIndexUntilToRight[i] - smallestIndexUntilToLeft[i] > 
+        			numberToWindowSize.get(arr[i])) {
+        			numberToWindowSize.put(arr[i],  smallestIndexUntilToRight[i] - smallestIndexUntilToLeft[i]);
+        		}
+        	}
+        }
+        HashMap<Integer, Long> windowSizeToNumber = new HashMap<Integer, Long>();
+        for (long num : numberToWindowSize.keySet()) {
+        	int wSize = numberToWindowSize.get(num);
+        	if (!windowSizeToNumber.containsKey(wSize)) {
+        		windowSizeToNumber.put(wSize, num);
+        	} else {
+        		if (windowSizeToNumber.get(wSize) < num) {
+        			windowSizeToNumber.put(wSize, num);
+        		}
+        	}
+        }
+        
+        long tmp = -1l;
+        long[] retval = new long[arr.length];
+        int counter = 0;
+        for (int i = arr.length; i > 0; i--) {
+        	if (windowSizeToNumber.containsKey(i)) tmp = windowSizeToNumber.get(i); 
+        	retval[counter] = tmp;
+        	counter++;
+        }
+        long[] reverse = new long[retval.length];
+        for (int i = 0; i < retval.length; i++) {
+        	reverse[i] = retval[retval.length-1-i];
+        }
+        
+        return reverse;
     }
 
     private static final Scanner scanner = new Scanner(System.in);
